@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
+import Footer from "./components/Footer.jsx";
 import LoginPage from "./pages/Login/LoginPage";
 import PrintPage from "./pages/Print/PrintPage";
 import RegisterPage from "./pages/Register/RegisterPage";
@@ -24,6 +25,7 @@ function App() {
           <Route path="/history" element={<PrintHistoryPage />} /> 
         </Routes>
       </div>
+      <Footer />
     </>
   );
 }
