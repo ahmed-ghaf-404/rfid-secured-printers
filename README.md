@@ -1,5 +1,3 @@
----
-
 ## Version 1.0 scope
 
 RFID-controlled printing across supported printer brands, with compatibility verified by model.
