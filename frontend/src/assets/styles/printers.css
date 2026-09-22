@@ -1,0 +1,41 @@
+.printers-page {
+    text-align: center;
+    padding: 50px 20px;
+    background: #ffffff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    max-width: 600px;
+    margin: 50px auto;
+  }
+  
+  .printers-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .printers-table th, .printers-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .printers-table th {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .printers-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  .available {
+    color: green;
+    font-weight: bold;
+  }
+  
+  .unavailable {
+    color: red;
+    font-weight: bold;
+  }
+  

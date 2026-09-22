@@ -1,0 +1,30 @@
+.users-page {
+  text-align: center;
+  padding: 50px 20px;
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  max-width: 600px;
+  margin: 50px auto;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.users-table th, .users-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+.users-table th {
+  background-color: #007bff;
+  color: white;
+}
+
+.users-table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
