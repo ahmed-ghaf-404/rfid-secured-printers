@@ -1,22 +1,13 @@
+"""HTTP endpoints and response serialization for print jobs."""
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import get_db
-from models import PrintJob, User
-from pydantic import BaseModel
-from pathlib import Path
-import platform
-import subprocess
-import sys
-
-# Conditional Windows-only imports
-if platform.system() == "Windows":
-    import win32print
-    import win32api
-
-UPLOAD_DIR = Path("uploaded_files")
-UPLOAD_DIR.mkdir(exist_ok=True)
+from services import print_jobs
+from services.printer import PrintError
 
 router = APIRouter()
+
 
 class PrintJobResponse(BaseModel):
     id: int
@@ -31,17 +22,15 @@ class PrintJobResponse(BaseModel):
 
 @router.get("/history", response_model=list[PrintJobResponse])
 def get_print_history(db: Session = Depends(get_db)):
-    jobs = db.query(PrintJob).join(PrintJob.user).all()
-
     return [
         PrintJobResponse(
             id=job.id,
             user_id=job.user_id,
             user_name=job.user.name,
             status=job.status,
-            timestamp=job.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            timestamp=job.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
         )
-        for job in jobs
+        for job in print_jobs.get_history(db)
     ]
 
 
@@ -49,43 +38,15 @@ def get_print_history(db: Session = Depends(get_db)):
 def send_print_job(
     user_id: int = Form(...),
     file: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # Save uploaded file
-    file_location = UPLOAD_DIR / file.filename
-    with open(file_location, "wb") as f:
-        f.write(file.file.read())
-
-    system_type = platform.system()
-
     try:
-        if system_type == "Windows":
-            printer_name = win32print.GetDefaultPrinter()
-            win32api.ShellExecute(
-                0,
-                "print",
-                str(file_location),
-                None,
-                ".",
-                0
-            )
-        elif system_type in ["Linux", "Darwin"]:  # Darwin = macOS
-            subprocess.run(["lpr", str(file_location)], check=True)
-        else:
-            raise Exception(f"Unsupported OS: {system_type}")
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Print error: {e}")
-
-    # Log the job
-    job = PrintJob(user_id=user.id)
-    db.add(job)
-    db.commit()
+        result = print_jobs.send_job(db, user_id, file.filename, file.file)
+    except print_jobs.UserNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except PrintError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     return {
-        "message": f"File '{file.filename}' printed for user {user.name} on {system_type}"
+        "message": f"File '{file.filename}' printed for user {result.user_name} on {result.system_type}"
     }
